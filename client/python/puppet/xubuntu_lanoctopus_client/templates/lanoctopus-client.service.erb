@@ -1,0 +1,17 @@
+[Unit]
+Description=Lanoctopus Client
+Wants=basic.target
+After=basic.target network.target
+
+[Service]
+ExecStart=/usr/local/bin/lanoctopus/lanoctopus-client.py
+Restart=on-failure
+User=nobody
+# Note Debian/Ubuntu uses 'nogroup', RHEL/Fedora uses 'nobody'
+Group=nogroup
+Environment=PATH=/usr/bin:/usr/local/bin
+# Environment=NODE_ENV=production
+WorkingDirectory=/usr/local/bin/lanoctopus
+
+[Install]
+WantedBy=multi-user.target

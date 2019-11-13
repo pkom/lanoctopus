@@ -1,0 +1,16 @@
+[Unit]
+Description=Lanoctopus Server
+Wants=basic.target
+After=basic.target network.target
+
+[Service]
+ExecStart=/webapps/lanoctopus-server/lanoctopus-server.py
+Restart=always
+User=nobody
+# Note Debian/Ubuntu uses 'nogroup', RHEL/Fedora uses 'nobody'
+Group=nogroup
+Environment=PATH=/usr/bin:/usr/local/bin
+WorkingDirectory=/webapps/lanoctopus-server
+
+[Install]
+WantedBy=multi-user.target
