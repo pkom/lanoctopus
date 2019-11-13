@@ -15,7 +15,7 @@ import mongoengine
 import pymongo
 import paho.mqtt.client as mqtt
 
-from models import Computer
+from models import Computer, User, LogComputer, LogUser
 
 
 def on_connect(client, userdata, flags, rc):
@@ -47,6 +47,7 @@ def process_action(client, action, host, payload_string):
         if computer is None:
             logger.info(f'Registering new computer {host}')
             computer = Computer(name=host)
+            logger.info(f'Computer {host} has been registered into database')
     except pymongo.errors.ConnectionFailure as e:
         logger.error(f'Error accessing mongoDB: {mongodb_uri} -> {e}')
     except pymongo.errors.ServerSelectionTimeoutError as e:
@@ -54,8 +55,8 @@ def process_action(client, action, host, payload_string):
     except Exception as e:
         logger.error(f'Error accessing mongoDB: {mongodb_uri} -> {e}')
     else:
+        computer.online = True
         computer.save()
-        logger.info(f'Computer {host} has been registered into database')
         if action == 'processedcommand':
             payload = json.loads(payload_string)
             if payload['PROCESSEDCOMMAND'] == 'GET_SYSTEM_INFO':                               
@@ -66,7 +67,37 @@ def process_action(client, action, host, payload_string):
         else:
             if computer.lastInfoDatetime is None or computer.updatedAt > computer.lastInfoDatetime + datetime.timedelta(days=30):
                 publish_command(client=client, host=host, command='GET_SYSTEM_INFO')
-    return
+            if action == 'status':
+                if payload_string == 'offline':
+                    computer.online = False
+                    computer.save()
+                    logComputer = LogComputer(computer=computer, status='shutting down')
+                    logComputer.save()
+                    logger.info(f'Computer {host} has been turned off')
+                else:
+                    logComputer = LogComputer(computer=computer, status='starting up')
+                    logComputer.save()
+                    logger.info(f'Computer {host} has been turned on')
+            elif action == 'login':
+                user = User.objects.filter(name=payload_string).first()
+                if user is None:
+                    user = User(name=payload_string)
+                    logger.info(f'User {payload_string} has been created')
+                user.online = True
+                user.save()
+                logUser = LogUser(user=user, computer=computer, action='login')
+                logUser.save()
+                logger.info(f'User {payload_string} has logged in on host {host}')
+            elif action == 'logout':
+                user = User.objects.filter(name=payload_string).first()
+                if user is None:
+                    user = User(name=payload_string)
+                    logger.info(f'User {payload_string} has been created')
+                user.online = False
+                user.save()
+                logUser = LogUser(user=user, computer=computer, action='logout')
+                logUser.save()
+                logger.info(f'User {payload_string} has logged out on host {host}')
 
 def on_message(client, userdata, msg):
     logger.debug(f'Receiving message Topic: {msg.topic} Message: {msg.payload} Qos: {msg.qos}')
@@ -75,10 +106,9 @@ def on_message(client, userdata, msg):
     action = match.group(1)
     host = match.group(2)
     payload_string = msg.payload.decode('utf-8')
-    payload_short = payload_string if action in ['status', 'login', 'logout'] else 'COMMAND'
-    logger.info(f'action ---> {action} host ---> {host} payload ---> {payload_short}')
+    #payload_short = payload_string if action in ['status', 'login', 'logout'] else 'COMMAND'
+    #logger.info(f'action ---> {action} host ---> {host} payload ---> {payload_short}')
     process_action(client, action, host, payload_string)
-    return
 
 def connect_mongodb(mongodb_uri):
     mongoengine.connect(host=mongodb_uri, socketTimeoutMS=5000, connectTimeoutMS=5000, serverSelectionTimeoutMS=5000)
