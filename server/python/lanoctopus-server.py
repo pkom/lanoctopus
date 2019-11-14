@@ -65,7 +65,7 @@ def process_action(client, action, host, payload_string):
                 computer.save()
             logger.info(f'Computer {host} has processed command {payload["PROCESSEDCOMMAND"]}')
         else:
-            if computer.lastInfoDatetime is None or computer.updatedAt > computer.lastInfoDatetime + datetime.timedelta(days=30):
+            if computer.lastInfoDatetime is None or computer.systemInfo is None or computer.updatedAt > computer.lastInfoDatetime + datetime.timedelta(days=30):
                 publish_command(client=client, host=host, command='GET_SYSTEM_INFO')
             if action == 'status':
                 if payload_string == 'offline':

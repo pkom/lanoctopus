@@ -107,6 +107,7 @@ class xubuntu_lanoctopus_client {
   exec { 'lanoctopus-client-systemd-reload':
     command     => 'systemctl daemon-reload',
     path        => [ '/usr/bin', '/bin', '/usr/sbin' ],
+    subscribe   => File[ '/usr/local/bin/lanoctopus/lanoctopus-client.py' ],
     refreshonly => true,
   }~>
   service { 'lanoctopus-client':
