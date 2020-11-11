@@ -1,0 +1,17 @@
+#user-events, #computer-events {
+  overflow: scroll;
+  height: 70vh;
+  -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+  -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+  box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+}
+
+.card img {
+  width: 40px;
+  max-height: 45px;
+  align-self: 'center';
+}
+
+#user-events .card .card-block p:last-child {
+  margin-top: -1rem;
+}

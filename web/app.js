@@ -18,8 +18,15 @@ const passport = require('passport');
 const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
 const multer = require('multer');
+const moment = require('moment');
 
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
+
+/*
+ * moment locale
+ */
+moment.locale('es');
+moment.defaultFormat = 'DD/MM/YY HH:mm:ss';
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -30,9 +37,13 @@ dotenv.config({ path: '.env' });
  * Controllers (route handlers).
  */
 const homeController = require('./controllers/home');
-const userController = require('./controllers/user');
+const loginController = require('./controllers/login');
 const systemStatusController = require('./controllers/status');
 const contactController = require('./controllers/contact');
+const computerController = require('./controllers/computer');
+const userController = require('./controllers/user');
+const ldapController = require('./controllers/ldap');
+const apiController = require('./api');
 
 /**
  * API keys and Passport configuration.
@@ -61,6 +72,7 @@ mongoose.connection.on('error', (err) => {
 /**
  * Express configuration.
  */
+app.set('NODE_ENV', process.env.NODE_ENV || 'development');
 app.set('host', process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0');
 app.set('port', process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080);
 app.set('views', path.join(__dirname, 'views'));
@@ -90,7 +102,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload') {
+  if (req.path.match(/^\/api/)) {
+  // if (req.path === '/api/upload') {
     // Multer multipart/form-data handling needs to occur before the Lusca CSRF check.
     next();
   } else {
@@ -102,6 +115,7 @@ app.use(lusca.xssProtection(true));
 app.disable('x-powered-by');
 app.use((req, res, next) => {
   res.locals.user = req.user;
+  res.locals.isAdmin = req.session.isAdmin;
   next();
 });
 app.use((req, res, next) => {
@@ -119,40 +133,76 @@ app.use((req, res, next) => {
   next();
 });
 app.use('/', express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
+app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/axios/dist'), { maxAge: 31557600000 }));
 app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/chart.js/dist'), { maxAge: 31557600000 }));
 app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/popper.js/dist/umd'), { maxAge: 31557600000 }));
 app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js'), { maxAge: 31557600000 }));
 app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/jquery/dist'), { maxAge: 31557600000 }));
+app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/jszip/dist'), { maxAge: 31557600000 }));
+app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/pdfmake/build'), { maxAge: 31557600000 }));
+app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/datatables.net/js'), { maxAge: 31557600000 }));
+app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/datatables.net-bs4/js'), { maxAge: 31557600000 }));
+
+app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/datatables.net-buttons/js'), { maxAge: 31557600000 }));
+app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/datatables.net-buttons-bs4/js'), { maxAge: 31557600000 }));
+app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/datatables.net-responsive/js'), { maxAge: 31557600000 }));
+app.use('/js/lib', express.static(path.join(__dirname, 'node_modules/datatables.net-responsive-bs4/js'), { maxAge: 31557600000 }));
+
+app.use('/css/lib', express.static(path.join(__dirname, 'node_modules/animate.css'), { maxAge: 31557600000 }));
+
+app.use('/css/lib', express.static(path.join(__dirname, 'node_modules/datatables.net-bs4/css'), { maxAge: 31557600000 }));
+app.use('/css/lib', express.static(path.join(__dirname, 'node_modules/datatables.net-buttons-bs4/css'), { maxAge: 31557600000 }));
+app.use('/css/lib', express.static(path.join(__dirname, 'node_modules/datatables.net-responsive-bs4/css'), { maxAge: 31557600000 }));
+
 app.use('/webfonts', express.static(path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free/webfonts'), { maxAge: 31557600000 }));
 
 /**
  * Primary app routes.
  */
 app.get('/', homeController.index);
-app.get('/login', userController.getLogin);
-app.post('/login', userController.postLogin);
-app.get('/logout', userController.logout);
-app.get('/forgot', userController.getForgot);
-app.post('/forgot', userController.postForgot);
-app.get('/reset/:token', userController.getReset);
-app.post('/reset/:token', userController.postReset);
+app.get('/login', loginController.getLogin);
+app.post('/login', loginController.postLogin);
+app.get('/logout', loginController.logout);
+// app.get('/forgot', loginController.getForgot);
+// app.post('/forgot', loginController.postForgot);
+app.get('/reset/:token', loginController.getReset);
+app.post('/reset/:token', loginController.postReset);
 // Avoid signup because we are using ldap auth
-// app.get('/signup', userController.getSignup);
-// app.post('/signup', userController.postSignup);
+// app.get('/signup', loginController.getSignup);
+// app.post('/signup', loginController.postSignup);
 app.get('/contact', contactController.getContact);
 app.post('/contact', contactController.postContact);
-app.get('/account/verify', passportConfig.isAuthenticated, userController.getVerifyEmail);
-app.get('/account/verify/:token', passportConfig.isAuthenticated, userController.getVerifyEmailToken);
-app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
-app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
-app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
-app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
-app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userController.getOauthUnlink);
+app.get('/account/verify', passportConfig.isAuthenticated, loginController.getVerifyEmail);
+app.get('/account/verify/:token', passportConfig.isAuthenticated, loginController.getVerifyEmailToken);
+app.get('/account', passportConfig.isAuthenticated, loginController.getAccount);
+app.post('/account/profile', passportConfig.isAuthenticated, loginController.postUpdateProfile);
+app.post('/account/password', passportConfig.isAuthenticated, loginController.postUpdatePassword);
+app.post('/account/delete', passportConfig.isAuthenticated, loginController.postDeleteAccount);
+app.get('/account/unlink/:provider', passportConfig.isAuthenticated, loginController.getOauthUnlink);
 
 /**
- * System Status routes.
+ * Monitorization routes.
  */
-app.get('/status', systemStatusController.getSystemStatus);
+app.get('/computer', passportConfig.isAdmin, computerController.getComputer);
+app.get('/computer/status/:computer', passportConfig.isAdmin, computerController.getComputerStatus);
+app.get('/computer/user/:computer', passportConfig.isAdmin, computerController.getComputerUser);
+
+app.get('/user', passportConfig.isAdmin, userController.getUser);
+app.get('/user/:user', passportConfig.isAdminOrSameUser, userController.getUserComputer);
+
+app.get('/status', passportConfig.isAdmin, systemStatusController.getSystemStatus);
+
+/**
+ * LDAP routes.
+ */
+app.get('/ldap/users', passportConfig.isAdmin, ldapController.getUsers);
+app.get('/ldap/groups', passportConfig.isAdmin, ldapController.getGroups);
+
+/**
+ * API routes.
+ */
+app.use('/api', apiController);
+
 
 /**
  * Error Handler.

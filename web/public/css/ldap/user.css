@@ -1,0 +1,17 @@
+.head-img {
+  text-align: center;
+}
+
+.table img {
+  width: 40px;
+  max-height: 40px;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+.table td:nth-child(2) {
+  text-align: center;
+}
+

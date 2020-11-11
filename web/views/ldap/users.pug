@@ -1,0 +1,31 @@
+extends ../layout
+
+block css
+  link(rel='stylesheet', href='/css/ldap/user.css')
+
+block content
+  include ../partials/header-page
+
+    .table-responsive
+      table#ldapusers.table.table-striped.table-bordered.table-hover.table-sm(style='width:100%')
+        thead
+          tr
+            th Tipo
+            th.head-img Foto
+            th Nombre
+            th Usuario
+            th Usuario ID
+            th Grupo ID
+            th Identificación
+        tfoot
+          tr
+            th Tipo
+            th.head-img Foto
+            th Nombre
+            th Usuario
+            th Usuario ID
+            th Grupo ID
+            th Identificación
+block js
+  script(defer, src='/js/ldap/user.js')
+  

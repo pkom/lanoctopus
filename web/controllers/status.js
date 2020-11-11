@@ -7,7 +7,8 @@ const validator = require('validator');
  */
 exports.getSystemStatus = (req, res) => {
   res.render('status/index', {
-    title: 'System Status'
+    title: 'Monitorizar',
+    subtitle: 'Estado'
   });
 };
 

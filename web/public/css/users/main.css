@@ -1,0 +1,26 @@
+.head-img {
+  text-align: center;
+}
+
+.table img {
+  width: 40px;
+  max-height: 40px;
+  /* border-style: none;
+  border-radius: 50%; */
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+.table td:nth-child(6) {
+  text-align: center;
+}
+
+.buttons-bar {
+  margin-bottom: 10px;
+}
+
+.table#user-status td:nth-child(1) {
+  text-align: center;
+}

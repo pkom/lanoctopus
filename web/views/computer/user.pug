@@ -1,0 +1,37 @@
+extends ../layout
+
+block css
+  link(rel='stylesheet', href='/css/computers/main.css')
+
+
+block content
+  include ../partials/header-page 
+    .table-responsive
+      table#computer-user.table.table-striped.table-bordered.table-hover.table-sm(style='width:100%')
+        thead
+          tr
+            th Ordenador
+            th.head-img Foto
+            th Usuario
+            th Fecha
+            th Acción
+        tbody
+          each log in userLog
+            tr
+              td(scope="row")= computer.name
+              td
+                img(class='rounded-circle' src= log.user.photo)
+              td= log.user.fullNameRev
+              td(data-order=log.atUNIX)= log.atLocale
+              td= log.actionSpanish
+        tfoot
+          tr
+            th Ordenador
+            th.head-img Foto
+            th Usuario
+            th Fecha
+            th Acción
+
+block js
+  script(defer, src='/js/computers/user.js')
+  

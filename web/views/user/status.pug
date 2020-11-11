@@ -1,0 +1,37 @@
+extends ../layout
+
+block css
+  link(rel='stylesheet', href='/css/users/main.css')
+
+
+block content
+  include ../partials/header-page 
+    .table-responsive
+      table#user-status.table.table-striped.table-bordered.table-hover.table-sm(style='width:100%')
+        thead
+          tr
+            th.head-img Foto
+            th Usuario
+            th Ordenador
+            th Fecha
+            th Estado
+        tbody
+          each log in userLog
+            tr
+              td(scope="row")
+                img(class='rounded-circle' src= log.user.photo)
+              td= usr.fullNameRev
+              td= log.computer.name
+              td(data-order=log.atUNIX)= log.atLocale
+              td= log.actionSpanish
+        tfoot
+          tr
+            th.head-img Foto
+            th Usuario
+            th Ordenador
+            th Fecha
+            th Estado
+
+block js
+  script(defer, src='/js/users/status.js')
+  

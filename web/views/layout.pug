@@ -1,14 +1,28 @@
 doctype html
-html
+html(lang="es")
   head
     meta(charset='utf-8')
     meta(http-equiv='X-UA-Compatible', content='IE=edge')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
     meta(name='theme-color' content='#4DA5F4')
     meta(name='csrf-token', content=_csrf)
-    title #{title} - LanOctopus
-    link(rel='shortcut icon', href='/favicon.png')
+    if subtitle
+      title #{title}|#{subtitle} - LanOctopus
+    else
+      title #{title} - LanOctopus
+    link(rel='shortcut icon', href='/favicon.ico')
+    
+    
+    link(rel='stylesheet', href='/css/lib/dataTables.bootstrap4.min.css')
+    link(rel='stylesheet', href='/css/lib/buttons.bootstrap4.min.css')
+    link(rel='stylesheet', href='/css/lib/responsive.bootstrap4.min.css')
+
+    link(rel='stylesheet', href='/css/lib/animate.min.css')
+
     link(rel='stylesheet', href='/css/main.css')
+    
+    block css
+
     block head
 
   body
@@ -20,10 +34,32 @@ html
 
     include partials/footer
 
-    script(src='/js/lib/jquery.min.js')
-    script(src='/js/lib/popper.min.js')
-    script(src='/js/lib/bootstrap.min.js')
-    script(src='/js/main.js')
+    script(defer, src='/js/lib/axios.min.js')
+    script(defer, src='/js/lib/jquery.min.js')
+    script(defer, src='/js/lib/popper.min.js')
+    script(defer, src='/js/lib/bootstrap.min.js')
+    script(defer, src='/js/lib/jszip.min.js')
+    script(defer, src='/js/lib/pdfmake.min.js')
+    script(defer, src='/js/lib/vfs_fonts.js')
+    script(defer, src='/js/lib/jquery.dataTables.min.js')
+    script(defer, src='/js/lib/dataTables.buttons.min.js')
+    script(defer, src='/js/lib/buttons.bootstrap4.min.js')
+    script(defer, src='/js/lib/buttons.colVis.min.js')
+    script(defer, src='/js/lib/buttons.html5.min.js')
+    script(defer, src='/js/lib/buttons.print.min.js')
+    script(defer, src='/js/lib/dataTables.responsive.min.js')
+    script(defer, src='/js/lib/responsive.bootstrap4.min.js')
+
+
+
+
+
+    script(defer, src='/js/lib/dataTables.bootstrap4.min.js')
+
+    script(defer, src='/js/paho-mqtt/mqttws31.min.js')
+
+    script(defer, src='/js/main.js')
+    block js
 
     // Google Analytics: change UA-XXXXX-X to be your site's ID
     script.

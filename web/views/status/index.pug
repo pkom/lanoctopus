@@ -1,5 +1,19 @@
 extends ../layout
 
+block css
+  link(rel='stylesheet', href='/css/systemstatus/main.css')
+
 block content
   .pb-2.mt-2.mb-4.border-bottom
-    h3 System Status
+    h3 Actividad en tiempo real
+    .row#events-container
+      .col#col-user-events
+        h4 Usuarios
+        div#user-events
+      .col#col-computer-events
+        h4 Ordenadores
+        div#computer-events
+
+
+block js
+  script(defer, src='/js/systemstatus/main.js')

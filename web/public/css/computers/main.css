@@ -1,0 +1,22 @@
+.head-img {
+  text-align: center;
+}
+
+.table img {
+  width: 40px;
+  max-height: 40px;
+  /* border-style: none;
+  border-radius: 50%; */
+}
+
+.table td:nth-child(2) {
+  text-align: center;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+.table#computers td:nth-child(2) {
+  text-align: center;
+}

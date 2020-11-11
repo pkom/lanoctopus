@@ -4,19 +4,19 @@ Wants=basic.target
 After=basic.target network.target
 
 [Service]
-ExecStart=/webapps/lanoctopus-server/venv/bin/python /webapps/lanoctopus-server/lanoctopus-server.py -d1
+ExecStart=/opt/lanoctopus-server/venv/bin/python /opt/lanoctopus-server/lanoctopus-server.py
 Restart=always
 User=nobody
 # Note Debian/Ubuntu uses 'nogroup', RHEL/Fedora uses 'nobody'
 Group=nogroup
 Environment=PATH=/usr/bin:/usr/local/bin
-# EnvironmentFile=/webapps/lanoctopus-server/sysconfig/lanoctopusservice.env
+# EnvironmentFile=/opt/lanoctopus-server/sysconfig/lanoctopusservice.env
 # Environment=broker_server=localhost
 # Environment=broker_user=lanoctopus
 # Environment=broker_password=lanoctopus
 # Environment=port=1883
 # Environment=mongodb_uri=mongodb://lanoctopus:lanoctopus@localhost/lanoctopus
-WorkingDirectory=/webapps/lanoctopus-server
+WorkingDirectory=/opt/lanoctopus-server
 
 [Install]
 WantedBy=multi-user.target

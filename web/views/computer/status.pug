@@ -1,0 +1,30 @@
+extends ../layout
+
+block css
+  link(rel='stylesheet', href='/css/computers/main.css')
+
+
+block content
+  include ../partials/header-page 
+    .table-responsive
+      table#computer-status.table.table-striped.table-bordered.table-hover.table-sm(style='width:100%')
+        thead
+          tr
+            th Ordenador
+            th Fecha
+            th Estado
+        tbody
+          each log in computerLog
+            tr
+              td(scope="row")= computer.name
+              td(data-order=log.atUNIX)= log.atLocale
+              td= log.statusSpanish
+        tfoot
+          tr
+            th Ordenador
+            th Fecha
+            th Estado
+
+block js
+  script(defer, src='/js/computers/status.js')
+  

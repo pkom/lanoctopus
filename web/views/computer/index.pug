@@ -1,0 +1,73 @@
+extends ../layout
+
+block css
+  link(rel='stylesheet', href='/css/computers/main.css')
+
+block content
+  include ../partials/header-page
+    .table-responsive
+      table#computers.table.table-striped.table-bordered.table-hover.table-sm(style='width:100%')
+        thead
+          tr
+            th Equipo
+            th Estado
+            th Tipo
+            th Sistema
+            th Uso
+            th Usuario
+            th Creado
+            th Actualizado
+            th Informado
+            th Acciones
+        tfoot
+          tr
+            th Equipo
+            th Estado
+            th Tipo
+            th Sistema
+            th Uso
+            th Usuario
+            th Creado
+            th Actualizado
+            th Informado
+            th Acciones
+    //- .table-responsive
+    //-   table#computers-client.table.table-striped.table-bordered.table-hover.table-sm(style='width:100%')
+    //-     thead
+    //-       tr
+    //-         th Equipo
+    //-         th Estado
+    //-         th Tipo
+    //-         th Sistema
+    //-         th Uso
+    //-         th Usuario
+    //-         th Creado
+    //-         th Actualizado
+    //-         th Informado
+    //-     tbody
+    //-       each computer in computers
+    //-         tr
+    //-           td(scope="row")= computer.name
+    //-           td(data-filter=computer.online ? 'Online' : 'Offline')= computer.status
+    //-           td= computer.type
+    //-           td= computer.system
+    //-           td= computer.use
+    //-           td= computer.user
+    //-           td(data-order=computer.createdAtUNIX)= computer.createdAtLocale
+    //-           td(data-order=computer.updatedAtUNIX)= computer.updatedAtLocale
+    //-           td(data-order=computer.lastInfoDatetimeUNIX, data-search=computer.lastInfoDatetimeLocale)= computer.lastInfoDatetimeFrom
+    //-     tfoot
+    //-       tr
+    //-         th Equipo
+    //-         th Estado
+    //-         th Tipo
+    //-         th Sistema
+    //-         th Uso
+    //-         th Usuario
+    //-         th Creado
+    //-         th Actualizado
+    //-         th Informado
+
+block js
+  script(defer, src='/js/computers/main.js')
+  

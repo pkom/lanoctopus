@@ -60,7 +60,7 @@ def process_action(client, action, host, payload_string):
         if action == 'processedcommand':
             payload = json.loads(payload_string)
             if payload['PROCESSEDCOMMAND'] == 'GET_SYSTEM_INFO':                               
-                computer.lastInfoDatetime = datetime.datetime.now()
+                computer.lastInfoDatetime = datetime.datetime.utcnow()
                 computer.systemInfo = payload['OUTPUT']
                 computer.save()
             logger.info(f'Computer {host} has processed command {payload["PROCESSEDCOMMAND"]}')
@@ -110,9 +110,6 @@ def on_message(client, userdata, msg):
     #logger.info(f'action ---> {action} host ---> {host} payload ---> {payload_short}')
     process_action(client, action, host, payload_string)
 
-def connect_mongodb(mongodb_uri):
-    mongoengine.connect(host=mongodb_uri, socketTimeoutMS=5000, connectTimeoutMS=5000, serverSelectionTimeoutMS=5000)
-
 
 if __name__ == "__main__":
     hostname = socket.gethostname()
@@ -141,7 +138,7 @@ if __name__ == "__main__":
     try:    
         mongodb_uri = os.environ['mongodb_uri']
     except:
-        mongodb_uri = 'mongodb://lanoctopus:lanoctopus@ibm:27017/lanoctopus'
+        mongodb_uri = 'mongodb://lanoctopus:lanoctopus@localhost/lanoctopus'
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", type=int, choices=[1, 2], help="increase output verbosity")
@@ -184,7 +181,11 @@ if __name__ == "__main__":
         logger.error(f'Certificate authority not found {certfile}')
         sys.exit(2)
 
-    connect_mongodb(mongodb_uri)
+    try:
+        mongoengine.connect(host=mongodb_uri)
+    except:
+        mongoengine.disconnect()
+        exit(1)
 
     client = mqtt.Client()
     client = mqtt.Client(protocol=mqtt.MQTTv311)

@@ -1,0 +1,38 @@
+extends ../layout
+
+block css
+  link(rel='stylesheet', href='/css/users/main.css')
+
+block content
+  include ../partials/header-page
+
+    div.buttons-bar
+      button#act-ldap.btn.btn-primary(type="button" data-toggle="tooltip" data-placement="right" title="Actualiza datos de usuarios desde LDAP") LDAP Act.
+
+    .table-responsive
+      table#users.table.table-striped.table-bordered.table-hover.table-sm(style='width:100%')
+        thead
+          tr
+            th Usuario
+            th Estado
+            th Apellidos
+            th Nombre
+            th ID
+            th.head-img Foto
+            th Creado
+            th Actualizado
+            th Acciones
+        tfoot
+          tr
+            th Usuario
+            th Estado
+            th Apellidos
+            th Nombre
+            th ID
+            th.head-img Foto
+            th Creado
+            th Actualizado
+            th Acciones
+block js
+  script(defer, src='/js/users/main.js')
+  

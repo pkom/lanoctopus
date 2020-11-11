@@ -1,5 +1,4 @@
 const passport = require('passport');
-const axios = require('axios');
 const { Strategy: LocalStrategy } = require('passport-local');
 const { Strategy: LdapStrategy } = require('passport-ldapauth');
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
@@ -22,7 +21,7 @@ passport.deserializeUser((id, done) => {
 /**
  * Sign in using Username and Password.
  */
-passport.use(new LocalStrategy({ usernameField: 'username' }, (username, password, done) => {
+passport.use(new LocalStrategy({ usernameField: 'name' }, (username, password, done) => {
   User.findOne({ userName: username.toLowerCase() }, (err, user) => {
     if (err) { return done(err); }
     if (!user) {
@@ -41,66 +40,27 @@ passport.use(new LocalStrategy({ usernameField: 'username' }, (username, passwor
   });
 }));
 
-// LDAP STRATEGY
+const OPTS = {
+  url: process.env.PASSPORT_LDAP_URL,
+  bindDN: process.env.PASSPORT_LDAP_BINDDN,
+  bindCredentials: process.env.PASSPORT_LDAP_BINDCREDENTIALS,
+  searchBase: 'ou=people,dc=instituto,dc=extremadura,dc=es',
+  searchFilter: '(uid={{username}})',
+  searchAttributes: ['employeeNumber', 'cn', 'givenName', 'sn', 'uid'],
+  // bindProperty: 'uid'
+  groupSearchBase: 'ou=Group,dc=instituto,dc=extremadura,dc=es', 
+  groupSearchAttributes: ['cn'],
+  groupSearchFilter: '(&(objectClass=groupOfNames)(memberUid={{username}}))'
+};
 
-// Credentials from the free LDAP test server by forumsys
-// More info at: http://www.forumsys.com/tutorials/integration-how-to/ldap/online-ldap-test-server/
-/* LDAP Server Information (read-only access):
-
-Server: ldap.forumsys.com
-Port: 389
-
-Bind DN: cn=read-only-admin,dc=example,dc=com
-Bind Password: password
-
-All user passwords are password.
-
-You may also bind to individual Users (uid) or the two Groups (ou) that include:
-
-ou=mathematicians,dc=example,dc=com
-
-riemann
-gauss
-euler
-euclid
-ou=scientists,dc=example,dc=com
-
-einstein
-newton
-galieleo
-tesla
- */
-let OPTS;
-if (process.env.LDAP_TEST === 'no') {
-  OPTS = {
-    url: 'ldap://ldap.forumsys.com:389',
-    bindDn: 'cn=read-only-admin,dc=example,dc=com',
-    bindCredentials: 'password',
-    searchBase: 'dc=example,dc=com',
-    searchFilter: '(uid={{username}})'
-  };
-} else {
-  OPTS = {
-    url: 'ldap://ldap:389',
-    bindDN: 'cn=replica,dc=instituto,dc=extremadura,dc=es',
-    bindCredentials: 'replica',
-    searchBase: 'ou=People,dc=instituto,dc=extremadura,dc=es',
-    searchFilter: '(uid={{username}})',
-    searchAttributes: ['employeeNumber', 'cn', 'givenName', 'sn', 'uid'],
-    // bindProperty: 'uid'
-    groupSearchBase: 'ou=Group,dc=instituto,dc=extremadura,dc=es', 
-    groupSearchAttributes: ['cn'],
-    groupSearchFilter: '(&(objectClass=groupOfNames)(memberUid={{username}}))'
-  };
-}
 passport.use(new LdapStrategy({
-  usernameField: 'username',
+  usernameField: 'name',
   passwordField: 'password',
   server: OPTS
-}, async (user, done) => {
+}, (user, done) => {
   // store data into database User model from ldap
-  User.findOneAndUpdate({ userName: user.uid }, {
-    userName: user.uid,
+  User.findOneAndUpdate({ name: user.uid }, {
+    name: user.uid,
     // email: user.mail,
     'profile.fullName': user.cn,
     'profile.employeeNumber': user.employeeNumber,
@@ -114,8 +74,8 @@ passport.use(new LdapStrategy({
 
 // JSON WEB TOKENS STRATEGY
 passport.use(new JwtStrategy({
-  jwtFromRequest: ExtractJwt.fromHeader('authorization'),
-  secretOrKey: process.env.SECRET || 'secret', // config.get('jwtPrivateKey'),
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: process.env.SESSION_SECRET,
 }, async (payload, done) => {
   try {
     // Find the user specified in token
@@ -124,13 +84,31 @@ passport.use(new JwtStrategy({
     if (!user) {
       return done(null, false);
     }
-
-    // Otherwise, return the user
-    done(null, user);
+    // Otherwise, return the payload
+    done(null, { id: payload.sub, ...payload });
   } catch (error) {
     done(error, false);
   }
 }));
+
+/**
+ * JWT Authenticated middleware.
+ */
+exports.JWTisAuthenticated = (req, res, next) => {
+  passport.authenticate('jwt', { session: false }, (err, user, info) => {
+    if (info) { 
+      return res.status(401).send({ message: info.message })
+    }
+    //  next(Error(info.message)); }
+    if (err) { return next(err); }
+    if (!user) { 
+      return res.status(403).send({ message: info.message});
+    }
+    req.user = user;
+    next();
+  })(req, res, next);
+};
+
 
 /**
  * Login Required middleware.
@@ -141,6 +119,29 @@ exports.isAuthenticated = (req, res, next) => {
   }
   res.redirect('/login');
 };
+
+/**
+ * isAdmin middleware.
+ */
+exports.isAdmin = (req, res, next) => {
+  if (req.session.isAdmin) {
+    return next();
+  }
+  res.redirect('/login');
+}
+
+/**
+ * isAdminOrUser middleware.
+ */
+exports.isAdminOrSameUser = (req, res, next) => {
+  if (req.session.isAdmin) {
+    return next();
+  }
+  if (req.params.user === req.user.name) {
+    return next();
+  }
+  res.redirect('/login');
+}
 
 /**
  * Authorization Required middleware.
