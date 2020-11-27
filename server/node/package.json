@@ -12,6 +12,6 @@
   "dependencies": {
     "mongoose": "^5.7.5",
     "mqtt": "^2.18.0",
-    "systeminformation": "^3.47.0"
+    "systeminformation": "^4.30.5"
   }
 }
