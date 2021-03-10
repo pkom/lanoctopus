@@ -39,7 +39,7 @@
     "express-handlebars": "^3.1.0",
     "express-session": "^1.17.0",
     "express-status-monitor": "^1.2.7",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "jsonwebtoken": "^8.5.1",
     "jszip": "^3.2.2",
     "ldapjs-client": "^0.1.1",
