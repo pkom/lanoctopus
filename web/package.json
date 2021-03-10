@@ -43,7 +43,7 @@
     "jsonwebtoken": "^8.5.1",
     "jszip": "^3.2.2",
     "ldapjs-client": "^0.1.1",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "lusca": "^1.6.1",
     "mailchecker": "^3.3.1",
     "moment": "^2.24.0",
